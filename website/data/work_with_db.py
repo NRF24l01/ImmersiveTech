@@ -66,12 +66,14 @@ class Item(SqlAlchemyBase, UserMixin, SerializerMixin):
         self.quantity = self.quantity - 1
 
 
-class Award(SqlAlchemyBase, UserMixin, SerializerMixin):
+class Task(SqlAlchemyBase, UserMixin, SerializerMixin):
     __tablename__ = 'awards_achievements'
     id = Column(Integer, primary_key=True)
     name = Column(String)
     description = Column(String)
     qualifications = Column(String)
+    award = Column(Integer)
+    task_type = Column(Integer, ForeignKey('task_types.id'))
 
     def add_qualifications(self, qualifications: list[str]):
         self.qualifications += qualifications
@@ -83,3 +85,9 @@ class Award(SqlAlchemyBase, UserMixin, SerializerMixin):
                 self.qualifications.remove(elem)
             except Exception:
                 continue
+
+
+class TaskType(SqlAlchemyBase, UserMixin, SerializerMixin):
+    __tablename__ = 'task_types'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
