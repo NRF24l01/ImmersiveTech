@@ -60,13 +60,13 @@ def register_page():  # страница регистрации
     form = RegisterForm()
     if form.validate_on_submit():
         if form.password.data != form.password_again.data:
-            return render_template('register2.html',
+            return render_template('register.html',
                                    form=form,
                                    message="Пароли не совпадают")
         db_sess = db_session.create_session()
         # подключение бд и проверка наличия почты там
         if db_sess.query(User).filter(User.email == form.email.data).first():
-            return render_template('register2.html',
+            return render_template('register.html',
                                    form=form,
                                    message="Такой пользователь уже есть")
         user = User(
@@ -80,12 +80,13 @@ def register_page():  # страница регистрации
         db_sess.add(user)  # добавление в бд
         db_sess.commit()
         return redirect('/login')
-    return render_template('register2.html', form=form)
+    return render_template('register.html', form=form)
 
 
 @app.route('/forgot-password', methods=["POST", "GET"])
 def forgotten_password_page():  # восстановление пароля
     if request.method == 'POST':
+        '''
         login = gmail
         password = gmail_key  # отправка письма через сервера google
         server = smtplib.SMTP('smtp.gmail.com', 25)
@@ -106,6 +107,7 @@ def forgotten_password_page():  # восстановление пароля
             server.send_message(msg)
             server.quit()  # письмо отправлено
             return redirect('/')  # есть letter.html но мне он показался не нужным
+            '''
     return render_template('forgot-password.html')
 
 
