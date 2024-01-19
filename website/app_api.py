@@ -14,17 +14,18 @@ blueprint = flask.Blueprint(
 
 @blueprint.route('/api/register', methods=['POST', 'GET'])
 def register_user():
-    if request.args.get('password') == '29AF622358':
-        db_sess = db_session.create_session()
-        user = User(
-            name=request.args.get('name'),
-            surname=request.args.get('surname'),
-            card_id=request.args.get('card_id'),
-            coins=500,
-            email=request.args.get('email')
-        )
-        user.set_password(request.args.get('password'))
-        db_sess.add(user)  #
-        db_sess.commit()
-        return jsonify({'SUCCESS': 'User has been registered!'})
-    return jsonify({'ERROR': 'Wrong or invalid password'})
+        try:
+            db_sess = db_session.create_session()
+            user = User(
+                name=request.args.get('name'),
+                surname=request.args.get('surname'),
+                card_id=request.args.get('card_id'),
+                coins=500,
+                email=request.args.get('email')
+            )
+            user.set_password(request.args.get('password'))
+            db_sess.add(user)  #
+            db_sess.commit()
+            return jsonify({'SUCCESS': 'User has been registered!'})
+        except Exception:
+            return jsonify({'ERROR': 'Error while registering user!'})

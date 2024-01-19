@@ -15,26 +15,26 @@ import app_api
 from website.data.user_forms import RegisterForm, LoginForm
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = app_password   # секретный ключ из файла passwords
-app.register_blueprint(app_api.blueprint)   # подлючение api
-login_manager = LoginManager()   # подключение flask_login
+app.config['SECRET_KEY'] = app_password  # секретный ключ из файла passwords
+app.register_blueprint(app_api.blueprint)  # подлючение api
+login_manager = LoginManager()  # подключение flask_login
 login_manager.init_app(app)
 db_session.global_init("db/database.db")
 
 
 @login_manager.user_loader
-def load_user(user_id):    # подгрука пользователя из бд
+def load_user(user_id):  # подгрука пользователя из бд
     db_sess = db_session.create_session()
     return db_sess.query(User).get(user_id)
 
 
 @app.route('/')
-def main_page():    # главная страница
+def main_page():  # главная страница
     return render_template('index.html', logged=current_user.is_authenticated)
 
 
 @app.route('/login', methods=["POST", "GET"])
-def login_page():   # страница входа
+def login_page():  # страница входа
     form = LoginForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
@@ -51,14 +51,8 @@ def login_page():   # страница входа
 @app.route('/logout')
 @login_required
 def logout():
-    logout_user()   # выход из аккаунта
+    logout_user()  # выход из аккаунта
     return redirect("/")
-
-
-def to_list(data):   # преобразование из cookie в список: раньше был ast и код был намного лучше, но pythonanywhere
-    # он не понравился
-    return [i for i in map(lambda x: x.replace('"', '').replace('"', '').replace("'", '').replace("'", ''),
-                           data[1:-1].split(', '))]
 
 
 @app.route('/register', methods=["POST", "GET"])
@@ -83,17 +77,17 @@ def register_page():  # страница регистрации
             email=form.email.data
         )
         user.set_password(form.password.data)
-        db_sess.add(user)   # добавление в бд
+        db_sess.add(user)  # добавление в бд
         db_sess.commit()
         return redirect('/login')
     return render_template('register2.html', form=form)
 
 
 @app.route('/forgot-password', methods=["POST", "GET"])
-def forgotten_password_page():   # восстановление пароля
+def forgotten_password_page():  # восстановление пароля
     if request.method == 'POST':
         login = gmail
-        password = gmail_key   # отправка письма через сервера google
+        password = gmail_key  # отправка письма через сервера google
         server = smtplib.SMTP('smtp.gmail.com', 25)
         server.starttls()
         server.login(login, password)
@@ -126,14 +120,14 @@ def reset_password():  # страница создания нового паро
         else:
             print('Passwords are equal')
             client = request.args.get('email')
-            url_client_id = request.args.get('id')   # сравнение параметров переданных в запросе с бд
+            url_client_id = request.args.get('id')  # сравнение параметров переданных в запросе с бд
             db_sess = db_session.create_session()
             if str(url_client_id) == \
                     str(db_sess.query(User.hashed_password).filter(User.email == client).first()[0]):
                 print('DB client exists')
                 client_account = db_sess.query(User).filter(User.email == client).first()
                 client_account.set_password(form.password.data)
-                db_sess.commit()    # смена пароля пользователя
+                db_sess.commit()  # смена пароля пользователя
                 return redirect('/login')
     return render_template('reset_password.html', form=form)
 
@@ -144,37 +138,30 @@ def show_items():  # каталог
     db_sess = db_session.create_session()
     # начало работы с фильтрами и сортировкой
     data = db_sess.query(Item).order_by(Item.price).all()
-    selected_sort = 'poor'
+    selected_sort = 'ascend'
     finder_value = ''
-    resp = make_response(render_template('games.html', logged=current_user.is_authenticated, data=data,
-                                         selected_sort=selected_sort, finder_value=finder_value))
     if request.method == 'POST':
         name = request.form.get('need')
-        if request.form.get('btn_finder') or name:   # работа фильтра  по названию
+        if request.form.get('btn_finder') or name:  # работа фильтра  по названию
             data_find = []
             for product in data:
                 if name.lower() in product.name.lower():
                     data_find.append(product)
             data = data_find
             finder_value = name
-        if request.form.get('sorter') == 'rich':   # работа сортировки
+        if request.form.get('sorter') == 'descending':  # работа сортировки
             data = data[::-1]
-            selected_sort = 'rich'
+            selected_sort = 'descending'
         else:
             data = data
-            selected_sort = 'poor'
-        resp = make_response(render_template('games.html', logged=current_user.is_authenticated, data=data,
-                                             selected_sort=selected_sort, finder_value=finder_value))
-        if request.form.get('btn'):   # добавление игры в корзину -> cookie
-            game = db_sess.query(Item).filter(Item.id == int(request.form.get('btn'))).first()
-            if request.cookies.get('cart'):
-                cookie_pre_payload = [str(game.id)] + to_list(request.cookies.get('cart'))
-            else:
-                cookie_pre_payload = [str(game.id)]
-            cookie_payload = []   # тк храним список, то я использовал json.dump
-            [cookie_payload.append(x) for x in cookie_pre_payload if x not in cookie_payload]
-            resp.set_cookie('cart', json.dumps(cookie_payload), max_age=60 * 60 * 24 * 90)
-    return resp
+            selected_sort = 'ascend'
+        if request.form.get('btn'):
+            item = db_sess.query(Item).filter(Item.id == int(request.form.get('btn'))).first()
+            return redirect(f'/get_payment/?item_id={item.id}')
+        return render_template('games.html', logged=current_user.is_authenticated, data=data,
+                               selected_sort=selected_sort, finder_value=finder_value)
+    return render_template('games.html', logged=current_user.is_authenticated, data=data,
+                           selected_sort=selected_sort, finder_value=finder_value)
 
 
 @app.route('/profile', methods=["GET", "POST"])
@@ -186,22 +173,22 @@ def show_profile():  # страница истории заказов
     for order in orders:
         if int(order.client_id) == int(current_user.id):
             client_orders.append(order)
-    return render_template('profile.html', orders=client_orders)
+    return render_template('profile.html', orders=client_orders, user=current_user)
 
 
 @app.route('/recieve_payment', methods=["GET", "POST"])
-def get_payment():   # получение оплаты, выдача товара
-        db_sess = db_session.create_session()
-        item = db_sess.query(Item).filter(Item.id == int(request.args.get('item_id'))).first().get_key()
-        order = Transaction(
-            time_transaction=datetime.datetime.now(),
-            coin_change=int(item.price),
-            user_id=int(current_user.get_id()),
-            comment=item.description,
-            item_id=int(item.id)
-        )
-        db_sess.add(order)
-        db_sess.commit()
+def get_payment():  # получение оплаты, выдача товара
+    db_sess = db_session.create_session()
+    item = db_sess.query(Item).filter(Item.id == int(request.args.get('item_id'))).first().get_key()
+    order = Transaction(
+        time_transaction=datetime.datetime.now(),
+        coin_change=int(item.price),
+        user_id=int(current_user.get_id()),
+        comment=item.description,
+        item_id=int(item.id)
+    )
+    db_sess.add(order)
+    db_sess.commit()
 
 
 @app.errorhandler(404)  # обработка 404
