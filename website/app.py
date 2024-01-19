@@ -10,11 +10,13 @@ from email.mime.text import MIMEText
 import datetime
 from whoid import WhoID
 from passwords import *
+import app_api
 
 from website.data.user_forms import RegisterForm, LoginForm
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = app_password   # секретный ключ из файла passwords
+app.register_blueprint(app_api.blueprint)   # подлючение api
 login_manager = LoginManager()   # подключение flask_login
 login_manager.init_app(app)
 db_session.global_init("db/database.db")

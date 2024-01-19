@@ -28,7 +28,7 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     coins = Column(Integer)
     email = Column(String)
     password = Column(String)
-    status = Column(Integer)
+    status = Column(Integer, default=1)
 
     def set_password(self, password):   # смена пароля
         self.password = generate_password_hash(password)
@@ -43,6 +43,12 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
 
     def check_teacher(self):
         if self.status == 2:
+            return True
+        return False
+
+    def change_status(self, difference):
+        if 1 <= self.status + difference <= 3:
+            self.status = self.status + difference
             return True
         return False
 
