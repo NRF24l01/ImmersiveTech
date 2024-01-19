@@ -42,10 +42,10 @@ def login_page():  # страница входа
         if user and user.check_password(form.password.data):  # получние пароля по почте и сравнение
             login_user(user, remember=form.remember_me.data)
             return redirect("/")
-        return render_template('login2.html',
+        return render_template('login.html',
                                message="Неправильный логин или пароль",
                                form=form)
-    return render_template('login2.html', form=form)
+    return render_template('login.html', form=form)
 
 
 @app.route('/logout')
@@ -60,13 +60,13 @@ def register_page():  # страница регистрации
     form = RegisterForm()
     if form.validate_on_submit():
         if form.password.data != form.password_again.data:
-            return render_template('register.html',
+            return render_template('signup.html',
                                    form=form,
                                    message="Пароли не совпадают")
         db_sess = db_session.create_session()
         # подключение бд и проверка наличия почты там
         if db_sess.query(User).filter(User.email == form.email.data).first():
-            return render_template('register.html',
+            return render_template('signup.html',
                                    form=form,
                                    message="Такой пользователь уже есть")
         user = User(
@@ -80,7 +80,7 @@ def register_page():  # страница регистрации
         db_sess.add(user)  # добавление в бд
         db_sess.commit()
         return redirect('/login')
-    return render_template('register.html', form=form)
+    return render_template('signup.html', form=form)
 
 
 @app.route('/forgot-password', methods=["POST", "GET"])
@@ -108,7 +108,7 @@ def forgotten_password_page():  # восстановление пароля
             server.quit()  # письмо отправлено
             return redirect('/')  # есть letter.html но мне он показался не нужным
             '''
-    return render_template('forgot-password.html')
+    return render_template('password_reset.html')
 
 
 @app.route('/reset_password', methods=["POST", "GET"])
@@ -116,7 +116,7 @@ def reset_password():  # страница создания нового паро
     form = ResetPasswordForm()  # test http://127.0.0.1:5000/reset_password?email=fedotovk24@sch57.ru&id=1
     if form.validate_on_submit():
         if form.password.data != form.password_again.data:
-            return render_template('reset_password.html',
+            return render_template('new_password.html',
                                    form=form,
                                    message="Пароли не совпадают")
         else:
@@ -131,11 +131,10 @@ def reset_password():  # страница создания нового паро
                 client_account.set_password(form.password.data)
                 db_sess.commit()  # смена пароля пользователя
                 return redirect('/login')
-    return render_template('reset_password.html', form=form)
+    return render_template('new_password.html', form=form)
 
 
-@app.route('/games', methods=["GET", "POST"])
-@login_required
+@app.route('/rewards', methods=["GET", "POST"])
 def show_items():  # каталог
     db_sess = db_session.create_session()
     # начало работы с фильтрами и сортировкой
@@ -160,9 +159,40 @@ def show_items():  # каталог
         if request.form.get('btn'):
             item = db_sess.query(Item).filter(Item.id == int(request.form.get('btn'))).first()
             return redirect(f'/get_payment/?item_id={item.id}')
-        return render_template('games.html', logged=current_user.is_authenticated, data=data,
+        return render_template('awards.html', logged=current_user.is_authenticated, data=data,
                                selected_sort=selected_sort, finder_value=finder_value)
-    return render_template('games.html', logged=current_user.is_authenticated, data=data,
+    return render_template('awards.html', logged=current_user.is_authenticated, data=data,
+                           selected_sort=selected_sort, finder_value=finder_value)
+
+
+@app.route('/tasks', methods=["GET", "POST"])
+def show_tasks():  # каталог
+    db_sess = db_session.create_session()
+    # начало работы с фильтрами и сортировкой
+    data = db_sess.query(Item).order_by(Item.price).all()
+    selected_sort = 'ascend'
+    finder_value = ''
+    if request.method == 'POST':
+        name = request.form.get('need')
+        if request.form.get('btn_finder') or name:  # работа фильтра  по названию
+            data_find = []
+            for product in data:
+                if name.lower() in product.name.lower():
+                    data_find.append(product)
+            data = data_find
+            finder_value = name
+        if request.form.get('sorter') == 'descending':  # работа сортировки
+            data = data[::-1]
+            selected_sort = 'descending'
+        else:
+            data = data
+            selected_sort = 'ascend'
+        if request.form.get('btn'):
+            item = db_sess.query(Item).filter(Item.id == int(request.form.get('btn'))).first()
+            return redirect(f'/get_payment/?item_id={item.id}')
+        return render_template('tasks.html', logged=current_user.is_authenticated, data=data,
+                               selected_sort=selected_sort, finder_value=finder_value)
+    return render_template('tasks.html', logged=current_user.is_authenticated, data=data,
                            selected_sort=selected_sort, finder_value=finder_value)
 
 
