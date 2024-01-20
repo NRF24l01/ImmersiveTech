@@ -61,7 +61,7 @@ def login_page():  # страница входа
             return redirect("/")
         return render_template('login.html',
                                message="Неправильный логин или пароль",
-                               form=form, teacher=load_user(current_user).check_teacher())
+                               form=form, teacher=teacher)
     return render_template('login.html', form=form, teacher=teacher)
 
 
@@ -379,7 +379,7 @@ def check_greeting():
 
 def main():
     db_session.global_init("db/database.db")
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=8090)
 
 
 if __name__ == '__main__':
