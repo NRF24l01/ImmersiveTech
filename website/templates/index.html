@@ -50,7 +50,7 @@
                 <div class="col-md-8 col-xl-6 text-center text-md-start mx-auto" style="margin-top: 0px;margin-bottom: 46px;padding-bottom: 0px;">
                     <div class="text-center">
                         <p class="fw-bold text-success mb-2">Учись.Развивайся.Побеждай</p>
-                        <h1 class="fw-bold">IMMERSIVE TECHNOLOGY GROUP</h1>
+                        <h1 class="fw-bold">ООО ИММЕРСИВНЫЕ ТЕХНОЛОГИИ</h1>
                     </div>
                 </div>
             </div>
@@ -64,8 +64,8 @@
                     <div class="col mb-4">
                         <div class="card bg-primary-light">
                             <div class="card-body text-center px-4 py-5 px-md-5">
-                                <p class="fw-bold text-primary card-text mb-2">Ценнные призы</p>
-                                <h5 class="fw-bold card-title mb-3">Получайте поощрения за ваши достижения в сфере науки и социальной жизни!</h5><button class="btn btn-primary btn-sm" type="button">Каталог призов</button>
+                                <p class="fw-bold text-primary card-text mb-2" style="color: #516dc9">Ценнные призы</p>
+                                <h5 class="fw-bold card-title mb-3">Получайте поощрения за ваши достижения в сфере науки и социальной жизни!</h5><button class="btn btn-primary btn-sm" type="button" href="/rewards" onclick="redirectToPage('/rewards')">Каталог призов</button>
                             </div>
                         </div>
                     </div>
@@ -73,7 +73,7 @@
                         <div class="card bg-info-light">
                             <div class="card-body text-center px-4 py-5 px-md-5">
                                 <p class="fw-bold text-info card-text mb-2">Круглосуточная поддержка</p>
-                                <h5 class="fw-bold card-title mb-3">Если при работе с сервисом возникает проблема, обращайтесь, поможем!</h5><button class="btn btn-info btn-sm" type="button">Нужна помощь</button>
+                                <h5 class="fw-bold card-title mb-3">Если при работе с сервисом возникает проблема, обращайтесь, поможем!</h5><button class="btn btn-primary btn-sm" type="button" href="#center" onclick="redirectToPage('/#help')">Нужна помощь</button>
                             </div>
                         </div>
                     </div>
@@ -81,7 +81,7 @@
                         <div class="card bg-secondary-light">
                             <div class="card-body text-center px-4 py-5 px-md-5">
                                 <p class="fw-bold text-secondary card-text mb-2"></p>
-                                <h5 class="fw-bold card-title mb-3">Много интересных заданий, которые помогут получить Вам не только призы, но и ценные знания, опыт.</h5><button class="btn btn-secondary btn-sm" type="button">К списку заданий!</button>
+                                <h5 class="fw-bold card-title mb-3">Много интересных заданий, которые помогут получить Вам не только призы, но и ценные знания, опыт.</h5><button class="btn btn-primary btn-sm" onclick="redirectToPage('/tasks')" type="button" href="/tasks">К списку заданий!</button>
                             </div>
                         </div>
                     </div>
@@ -89,7 +89,7 @@
             </div>
         </div>
     </section>
-    <section class="py-5">
+    <section class="py-5" id="help">
         <div class="container">
             <div class="row mb-5">
                 <div class="col-md-8 col-xl-6 text-center mx-auto">
@@ -141,7 +141,7 @@
                     <p class="mb-0">Получай информацию об олимпиадах и событиях в мире знаний первым!</p>
                 </div>
                 <form class="d-flex justify-content-center flex-wrap flex-lg-nowrap" method="post">
-                    <div class="my-2"><input class="border rounded-pill shadow-sm form-control" type="email" name="email" placeholder="Почта"></div>
+                    <div class="my-2"><input class="border rounded-pill shadow-sm form-control" type="email" name="email_ad" placeholder="Почта"></div>
                     <div class="my-2"><button class="btn btn-primary shadow ms-2" type="submit">Подписаться</button></div>
                 </form>
             </div>
@@ -164,10 +164,16 @@
             </div>
         </div>
     </footer>
-    <script src="assets/js/jquery.min.js"></script>
-    <script src="assets/bootstrap/js/bootstrap.min.js"></script>
-    <script src="assets/js/bs-init.js"></script>
-    <script src="assets/js/bold-and-dark.js"></script>
+    <script>
+    function redirectToPage(targetPath) {
+        var targetUrl = window.location.origin + targetPath;
+        window.location.href = targetUrl;
+    }
+    </script>
+    <script src="static/assets/js/jquery.min.js"></script>
+    <script src="static/assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="static/assets/js/bs-init.js"></script>
+    <script src="static/assets/js/bold-and-dark.js"></script>
 </body>
 
 </html>

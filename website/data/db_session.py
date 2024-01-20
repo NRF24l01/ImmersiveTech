@@ -16,8 +16,10 @@ def global_init(db_file):
 
     if not db_file or not db_file.strip():
         raise Exception("Необходимо указать файл базы данных.")
-
+    '''
     conn_str = f'sqlite:///{db_file.strip()}?check_same_thread=False'
+    '''
+    conn_str = 'postgresql://postegre_site:1DKar$odE*pmIQg%8RLo@192.168.115.201/school_bank'
     print(f"Connecting database {conn_str}")
 
     engine = sa.create_engine(conn_str, echo=False)
