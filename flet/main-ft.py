@@ -14,6 +14,29 @@ card_id = None
 rows_of_buys = 4
 rows_of_olimps = 4
 
+def check_user(card_id):
+    url = 'https://whoid.ru/card/api/check'
+
+    params = dict(
+        card=card_id
+    )
+
+    resp = requests.get(url=url, params=params)
+    print(resp.text)
+    return loads(resp.text)
+
+def build_reg_screen(card_id):
+    url = f"https://whoid.ru/card/reg?card={"_".join(card_id.split(' '))}"
+    c = ft.Column([
+        ft.Text("Ой-Ой. Вы не зарегестрированы(", text_align=ft.TextAlign.CENTER, size=35),
+        ft.Image(
+        src=f"https://api.qrserver.com/v1/create-qr-code/?size=400x400&data={url}",
+        width=400,
+        height=400,
+        fit=ft.ImageFit.CONTAIN),
+        ft.Text("Держи qr для регестриции)", text_align=ft.TextAlign.CENTER, size=30)
+    ])
+    return c
 
 def card():
     global card_id
@@ -169,12 +192,23 @@ def main(page: ft.Page):
     ]
     prev = None
     change = False
+    usr = False
     while True:
         if prev != card_id:
+            try:
+                usr = check_user(card_id["card_id"])["error"]
+                usr = True
+            except Exception as e:
+                usr = False
+            print(usr)
             if not change:
-                ma = build_main(items, predmets)
-                animate(ma)
-                change = True
+                if not usr:
+                    ma = build_main(items, predmets)
+                    animate(ma)
+                    change = True
+                else:
+                    animate(build_reg_screen(card_id["card_id"]))
+                    change = True
             #print(time() - card_id["time"])
             if time() - card_id["time"] > 5:
                 print("prev")
