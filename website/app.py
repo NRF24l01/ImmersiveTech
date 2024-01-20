@@ -5,32 +5,42 @@ from flask_login import LoginManager, login_user, login_required, logout_user, c
 from data.user_forms import *
 from data.work_with_db import User, Transaction, Item, Task
 import datetime
-
 import app_api
 from data.user_forms import RegisterForm, LoginForm
-
 
 app.register_blueprint(app_api.blueprint)  # подлючение api
 login_manager = LoginManager()  # подключение flask_login
 login_manager.init_app(app)
 
 
-
 @login_manager.user_loader
 def load_user(user_id):  # подгрука пользователя из бд
-    db_sess = db_session.create_session()
-    return db_sess.query(User).get(user_id)
+    try:
+        db_sess = db_session.create_session()
+        return db_sess.query(User).get(user_id)
+    except Exception:
+        return None
 
 
 @app.route('/')
 def main_page():  # главная страница
+    user = load_user(current_user)
+    if user != None:
+        teacher = user.check_teacher()
+    else:
+        teacher = False
     return render_template('index.html',
-                           logged=current_user.is_authenticated,
-                           teacher=load_user(current_user).check_teacher())
+                               logged=current_user.is_authenticated,
+                               teacher=teacher)
 
 
 @app.route('/login', methods=["POST", "GET"])
 def login_page():  # страница входа
+    user = load_user(current_user)
+    if user != None:
+        teacher = user.check_teacher()
+    else:
+        teacher = False
     form = LoginForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
@@ -41,12 +51,17 @@ def login_page():  # страница входа
         return render_template('login.html',
                                message="Неправильный логин или пароль",
                                form=form, teacher=load_user(current_user).check_teacher())
-    return render_template('login.html', form=form, teacher=load_user(current_user).check_teacher())
+    return render_template('login.html', form=form, teacher=teacher)
 
 
 @app.route('/create-task', methods=["POST", "GET"])
 @login_required
 def create_task():  # создание задания
+    user = load_user(current_user)
+    if user != None:
+        teacher = user.check_teacher()
+    else:
+        teacher = False
     if load_user(current_user).check_teacher():
         form = CreateTaskForm()
         if form.validate_on_submit():
@@ -56,7 +71,7 @@ def create_task():  # создание задания
                 return render_template('create_task.html',
                                        form=form,
                                        message="Такое задание уже есть",
-                                       teacher=load_user(current_user).check_teacher())
+                                       teacher=teacher)
             task = Task(
                 name=form.task_name.data,
                 description=form.description.data,
@@ -68,13 +83,18 @@ def create_task():  # создание задания
             db_sess.commit()
             return redirect("/tasks")
         return render_template('create_task.html', form=form,
-                               teacher=load_user(current_user).check_teacher())
+                               teacher=teacher)
     return redirect('/')
 
 
 @app.route('/check_tasks', methods=["GET", "POST"])
 @login_required
 def check_tasks():
+    user = load_user(current_user)
+    if user != None:
+        teacher = user.check_teacher()
+    else:
+        teacher = False
     db_sess = db_session.create_session()
     data = db_sess.query(Task).all()
     users = db_sess.query(User).all()
@@ -85,9 +105,9 @@ def check_tasks():
             user.add_coins(task.award)
             db_sess.commit()
         return render_template('asses.html', logged=current_user.is_authenticated,
-                               data=data, users=users, teacher=load_user(current_user).check_teacher())
+                               data=data, users=users, teacher=teacher)
     return render_template('asses.html', logged=current_user.is_authenticated, data=data, users=users,
-                           teacher=load_user(current_user).check_teacher())
+                           teacher=teacher)
 
 
 @app.route('/logout')
@@ -129,19 +149,29 @@ def register_page():  # страница регистрации
 
 @app.route('/whoid')
 def whoid_auth():
+    user = load_user(current_user)
+    if user != None:
+        teacher = user.check_teacher()
+    else:
+        teacher = False
     token = str(uuid.uuid4())
-    return render_template('whoid.html', token=token)
+    return render_template('whoid.html', token=token, teacher=teacher)
 
 
 @app.route('/whoid_log')
 def log():
+    user = load_user(current_user)
+    if user != None:
+        teacher = user.check_teacher()
+    else:
+        teacher = False
     result = request.args.get('status')
     mail = request.args.get('mail')
     if result == "Success":
-        return render_template('index.html', result=result)
+        return render_template('index.html', result=result, teacher=teacher)
     else:
         token = str(uuid.uuid4())
-        return render_template('index.html', result=result, token=token)
+        return render_template('index.html', result=result, token=token, teacher=teacher)
 
 
 @app.route('/forgot-password', methods=["POST", "GET"])
@@ -174,13 +204,18 @@ def forgotten_password_page():  # восстановление пароля
 
 @app.route('/reset_password', methods=["POST", "GET"])
 def reset_password():  # страница создания нового пароля
+    user = load_user(current_user)
+    if user != None:
+        teacher = user.check_teacher()
+    else:
+        teacher = False
     form = ResetPasswordForm()  # test http://127.0.0.1:5000/reset_password?email=fedotovk24@sch57.ru&id=1
     if form.validate_on_submit():
         if form.password.data != form.password_again.data:
             return render_template('new_password.html',
                                    form=form,
                                    message="Пароли не совпадают",
-                                   teacher=load_user(current_user).check_teacher())
+                                   teacher=teacher)
         else:
             print('Passwords are equal')
             client = request.args.get('email')
@@ -194,11 +229,16 @@ def reset_password():  # страница создания нового паро
                 db_sess.commit()  # смена пароля пользователя
                 return redirect('/login')
     return render_template('new_password.html', form=form,
-                           teacher=load_user(current_user).check_teacher())
+                           teacher=teacher)
 
 
 @app.route('/rewards', methods=["GET", "POST"])
 def show_items():  # каталог
+    user = load_user(current_user)
+    if user != None:
+        teacher = user.check_teacher()
+    else:
+        teacher = False
     db_sess = db_session.create_session()
     # начало работы с фильтрами и сортировкой
     data = db_sess.query(Item).order_by(Item.price).all()
@@ -224,14 +264,19 @@ def show_items():  # каталог
             return redirect(f'/get_payment/?item_id={item.id}')
         return render_template('awards.html', logged=current_user.is_authenticated, data=data,
                                selected_sort=selected_sort, finder_value=finder_value,
-                               teacher=load_user(current_user).check_teacher())
+                               teacher=teacher)
     return render_template('awards.html', logged=current_user.is_authenticated, data=data,
                            selected_sort=selected_sort, finder_value=finder_value,
-                           teacher=load_user(current_user).check_teacher())
+                           teacher=teacher)
 
 
 @app.route('/tasks', methods=["GET", "POST"])
 def show_tasks():  # каталог
+    user = load_user(current_user)
+    if user != None:
+        teacher = user.check_teacher()
+    else:
+        teacher = False
     db_sess = db_session.create_session()
     # начало работы с фильтрами и сортировкой
     data = db_sess.query(Item).order_by(Item.price).all()
@@ -257,15 +302,20 @@ def show_tasks():  # каталог
             return redirect(f'/get_payment/?item_id={item.id}')
         return render_template('tasks.html', logged=current_user.is_authenticated, data=data,
                                selected_sort=selected_sort, finder_value=finder_value,
-                               teacher=load_user(current_user).check_teacher())
+                               teacher=teacher)
     return render_template('tasks.html', logged=current_user.is_authenticated, data=data,
                            selected_sort=selected_sort, finder_value=finder_value,
-                           teacher=load_user(current_user).check_teacher())
+                           teacher=teacher)
 
 
 @app.route('/profile', methods=["GET", "POST"])
 @login_required
 def show_profile():  # страница истории заказов
+    user = load_user(current_user)
+    if user != None:
+        teacher = user.check_teacher()
+    else:
+        teacher = False
     db_sess = db_session.create_session()
     orders = db_sess.query(Item).all()
     client_orders = []
@@ -273,7 +323,7 @@ def show_profile():  # страница истории заказов
         if int(order.client_id) == int(current_user.id):
             client_orders.append(order)
     return render_template('profile.html', orders=client_orders, user=current_user,
-                           teacher=load_user(current_user).check_teacher())
+                           teacher=teacher)
 
 
 @app.route('/recieve_payment', methods=["GET", "POST"])
@@ -293,15 +343,25 @@ def get_payment():  # получение оплаты, выдача товара
 
 @app.errorhandler(404)  # обработка 404
 def handle_error404(error):
+    user = load_user(current_user)
+    if user != None:
+        teacher = user.check_teacher()
+    else:
+        teacher = False
     return render_template('404.html', logged=current_user.is_authenticated,
-                           teacher=load_user(current_user).check_teacher())
+                           teacher=teacher)
+
 
 @app.route('/letter')
 def check_letter():
     return render_template('passwordprev.html')
+
+
 @app.route('/greeting')
 def check_greeting():
     return render_template('greeting.html')
+
+
 def main():
     db_session.global_init("db/database.db")
     app.run(debug=True)
