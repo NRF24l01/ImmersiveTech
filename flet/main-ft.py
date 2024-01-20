@@ -5,10 +5,11 @@ import qrcode
 import requests
 import serial
 from time import time
+from json import loads
 
 import math
 
-card_id = ""
+card_id = None
 
 rows_of_buys = 4
 rows_of_olimps = 4
@@ -28,7 +29,7 @@ def card():
         if ser.in_waiting > 0:
             smth = ser.readline().decode('utf-8').rstrip()[7:]
             if not smth == "":
-                card_id = {"card_id": smth, "date": time()}
+                card_id = {"card_id": smth, "time": time()}
                 print(card_id)
 
 
@@ -38,17 +39,7 @@ def create_qrcode(text):
         file.save('./qr.png')
 
 
-def main(page: ft.Page):
-    page.title = "Активный школьник"
-    # page.scroll = "adaptive"
-
-    items = [
-        'Ручка', 'Блокнот', 'Футболка', 'Интульгенция', 'Кружка', 'Мышка',
-    ]
-    predmets = [
-        'Математика', "Физика", "Русский язык", "Биология", "Информатика", "Химия", "История"
-    ]
-
+def build_main(items, predmets):
     create_qrcode('whoid.ru')
 
     up_part = ft.Row(
@@ -134,15 +125,62 @@ def main(page: ft.Page):
         selectable=True
     )], alignment=ft.MainAxisAlignment.CENTER)
 
-    page.add(ft.Column([name_pr, up_part, ft.Divider(
+    fn_r = ft.Column([name_pr, up_part, ft.Divider(
         height=9,
         thickness=3
     ), buyes, ft.Divider(
         height=9,
         thickness=3
-    ), olipmps]))
+    ), olipmps])
+    return fn_r
 
-    sh = []
+
+def screen_saver_build():
+    screen_saver = ft.Text("Приложите карточку", text_align=ft.TextAlign.CENTER)
+    return screen_saver
+
+
+def main(page: ft.Page):
+    page.title = "Активный школьник"
+    # page.scroll = "adaptive"
+
+    screensaver = screen_saver_build()
+
+    c = ft.AnimatedSwitcher(
+        screensaver,
+        transition=ft.AnimatedSwitcherTransition.SCALE,
+        duration=500,
+        reverse_duration=500,
+        switch_in_curve=ft.AnimationCurve.EASE_IN,
+        switch_out_curve=ft.AnimationCurve.EASE_OUT,
+    )
+    page.add(c)
+
+    def animate(content):
+        c.content = content
+        c.update()
+        page.update()
+
+    items = [
+        'Ручка', 'Блокнот', 'Футболка', 'Интульгенция', 'Кружка', 'Мышка',
+    ]
+    predmets = [
+        'Математика', "Физика", "Русский язык", "Биология", "Информатика", "Химия", "История"
+    ]
+    prev = None
+    change = False
+    while True:
+        if prev != card_id:
+            if not change:
+                ma = build_main(items, predmets)
+                animate(ma)
+                change = True
+            #print(time() - card_id["time"])
+            if time() - card_id["time"] > 5:
+                print("prev")
+                prev = card_id
+                animate(screensaver)
+                change = False
 
     page.update()
 
