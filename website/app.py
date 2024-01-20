@@ -128,21 +128,25 @@ def logout():
     return redirect("/")
 
 
-'''
 @app.route('/register', methods=["POST", "GET"])
 def register_page():  # страница регистрации
+    user = load_user(current_user)
+    if user != None:
+        teacher = user.check_teacher()
+    else:
+        teacher = False
     form = RegisterForm()
     if form.validate_on_submit():
         if form.password.data != form.password_again.data:
             return render_template('signup.html',
                                    form=form,
-                                   message="Пароли не совпадают")
+                                   message="Пароли не совпадают", teacher=teacher)
         db_sess = db_session.create_session()
         # подключение бд и проверка наличия почты там
         if db_sess.query(User).filter(User.email == form.email.data).first():
             return render_template('signup.html',
                                    form=form,
-                                   message="Такой пользователь уже есть")
+                                   message="Такой пользователь уже есть", teacher=teacher)
         user = User(
             name=form.name.data,
             surname=form.surname.data,
@@ -155,7 +159,6 @@ def register_page():  # страница регистрации
         db_sess.commit()
         return redirect('/login')
     return render_template('signup.html', form=form)
-'''
 
 
 @app.route('/whoid')

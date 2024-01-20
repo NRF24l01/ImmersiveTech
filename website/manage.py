@@ -6,7 +6,7 @@ from data.work_with_db import *
 from data import db_session
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = app_password  # секретный ключ из файла passwords
+app.config['SECRET_KEY'] = 'ImmersiveTech1561_ESPHC73B3HF72'  # секретный ключ из файла passwords
 db_string = "postgresql://{}:{}@{}:{}/{}".format(db_name, db_password,
                                                  '192.168.115.201', 5432, 'school_bank')
 app.config['SQLALCHEMY_DATABASE_URI'] = db_string

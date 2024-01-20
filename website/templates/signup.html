@@ -39,6 +39,9 @@
                 {% if logged %}
                 <li class="nav-item"><a class="nav-link" href="/profile">Профиль</a></li>
                 {% endif %}
+                {% if not logged %}
+                <li class="nav-item"><a class="nav-link active" href="/register">Регистрация</a></li>
+                {% endif %}
                 {% if teacher %}
                 <li class="nav-item"><a class="nav-link" href="/make_tasks"></a>Создать задание</li>
                 <li class="nav-item"><a class="nav-link" href="/check_tasks"></a>Проверить задание</li>
@@ -69,33 +72,67 @@
                             </svg>
                         </div>
                         <form method="post">
-                            <div class="mb-3"><input class="form-control" type="text" name="name" placeholder="Имя">
+                            <div class="mb-3">
+                                {{ form.name.label(style="color: rgb(0,0,0)") }}<br>
+                                {{ form.name(class="form-control form-control-user", placeholder="Имя",
+                                type="text") }}<br>
+                                {% for error in form.name.errors %}
+                                <div class="alert alert-danger" role="alert">
+                                    {{ error }}
+                                </div>
+                                {% endfor %}
                             </div>
-                            <div class="mb-3"><input class="form-control" type="text" name="surname"
-                                                     placeholder="Фамилия"></div>
-                            <div class="mb-3"><input class="form-control" type="text" name="card_id"
-                                                     placeholder="Карта Москвенок"></div>
-                            <div class="mb-3"><input class="form-control" type="email" name="email" placeholder="Почта">
+                            <div class="mb-3">
+                                {{ form.surname.label(style="color: rgb(0,0,0)") }}<br>
+                                {{ form.surname(class="form-control form-control-user", placeholder="Фамилия",
+                                type="text") }}<br>
+                                {% for error in form.surname.errors %}
+                                <div class="alert alert-danger" role="alert">
+                                    {{ error }}
+                                </div>
+                                {% endfor %}
                             </div>
-                            {% for error in form.email.errors %}
-                            <p class="alert alert-danger" role="alert">
-                                {{ error }}
-                            </p>
-                            {% endfor %}
-                            <div class="mb-3"><input class="form-control" type="password" name="password"
-                                                     placeholder="Пароль"></div>
-                            {% for error in form.password.errors %}
-                            <p class="alert alert-danger" role="alert">
-                                {{ error }}
-                            </p>
-                            {% endfor %}
-                            <div class="mb-3"><input class="form-control" type="password" name="password_check"
-                                                     placeholder="Повторите пароль"></div>
-                            {% for error in form.password_again.errors %}
-                            <p class="alert alert-danger" role="alert">
-                                {{ error }}
-                            </p>
-                            {% endfor %}
+                            <div class="mb-3">
+                                {{ form.card_id.label(style="color: rgb(0,0,0)") }}<br>
+                                {{ form.card_id(class="form-control form-control-user", placeholder="Карта москвенок",
+                                type="text") }}<br>
+                                {% for error in form.card_id.errors %}
+                                <div class="alert alert-danger" role="alert">
+                                    {{ error }}
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <div class="mb-3">
+                                {{ form.email.label(style="color: rgb(0,0,0)") }}<br>
+                                {{ form.email(class="form-control form-control-user", placeholder="Почта", type="email")
+                                }}<br>
+                                {% for error in form.email.errors %}
+                                <div class="alert alert-danger" role="alert">
+                                    {{ error }}
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <div class="mb-3">
+                                {{ form.password.label(style="color: rgb(0,0,0)") }}<br>
+                                {{ form.password(class="form-control form-control-user", placeholder="Пароль",
+                                type="password") }}<br>
+                                {% for error in form.password.errors %}
+                                <div class="alert alert-danger" role="alert">
+                                    {{ error }}
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <div class="mb-3">
+                                {{ form.password_again.label(style="color: rgb(0,0,0)") }}<br>
+                                {{ form.password_again(class="form-control form-control-user", placeholder="Повторите
+                                пароль",
+                                type="password") }}<br>
+                                {% for error in form.password_again.errors %}
+                                <div class="alert alert-danger" role="alert">
+                                    {{ error }}
+                                </div>
+                                {% endfor %}
+                            </div>
                             {{message}}
                             <div class="mb-3">
                                 <button class="btn btn-primary shadow d-block w-100" type="submit">Зарегистрироваться
