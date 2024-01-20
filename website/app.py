@@ -22,16 +22,26 @@ def load_user(user_id):  # подгрука пользователя из бд
         return None
 
 
-@app.route('/')
+@app.route('/', methods=["POST", "GET"])
 def main_page():  # главная страница
     user = load_user(current_user)
     if user != None:
         teacher = user.check_teacher()
     else:
         teacher = False
+    if request.method == 'POST':
+        if request.args.get("support"):
+            name = request.args.get("name")
+            email = request.args.get("email")
+            print(f"support {name} {email}")
+            return redirect('/')
+        else:
+            email = request.args.get("subscribe")
+            print(f"subscribe {email}")
+            return redirect('/')
     return render_template('index.html',
-                               logged=current_user.is_authenticated,
-                               teacher=teacher)
+                           logged=current_user.is_authenticated,
+                           teacher=teacher)
 
 
 @app.route('/login', methods=["POST", "GET"])
