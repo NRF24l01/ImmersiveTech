@@ -64,8 +64,24 @@
                                 <div class="mb-3"><input class="form-control" type="text" name="surname" placeholder="Фамилия"></div>
                                 <div class="mb-3"><input class="form-control" type="text" name="card_id" placeholder="Карта Москвенок"></div>
                                 <div class="mb-3"><input class="form-control" type="email" name="email" placeholder="Почта"></div>
+                                {% for error in form.email.errors %}
+                                <p class="alert alert-danger" role="alert">
+                                    {{ error }}
+                                </p>
+                                {% endfor %}
                                 <div class="mb-3"><input class="form-control" type="password" name="password" placeholder="Пароль"></div>
+                                {% for error in form.password.errors %}
+                                <p class="alert alert-danger" role="alert">
+                                    {{ error }}
+                                </p>
+                                {% endfor %}
                                 <div class="mb-3"><input class="form-control" type="password" name="password_check" placeholder="Повторите пароль"></div>
+                                {% for error in form.password_again.errors %}
+                                <p class="alert alert-danger" role="alert">
+                                    {{ error }}
+                                </p>
+                                {% endfor %}
+                                {{message}}
                                 <div class="mb-3"><button class="btn btn-primary shadow d-block w-100" type="submit">Зарегистрироваться</button></div>
                                 <p class="text-muted">Уже есть аккаунт?&nbsp;<a href="/login">Войти!</a></p>
                             </form>
@@ -92,10 +108,10 @@
             </div>
         </div>
     </footer>
-    <script src="assets/js/jquery.min.js"></script>
-    <script src="assets/bootstrap/js/bootstrap.min.js"></script>
-    <script src="assets/js/bs-init.js"></script>
-    <script src="assets/js/bold-and-dark.js"></script>
+    <script src="static/assets/js/jquery.min.js"></script>
+    <script src="static/assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="static/assets/js/bs-init.js"></script>
+    <script src="static/assets/js/bold-and-dark.js"></script>
 </body>
 
 </html>

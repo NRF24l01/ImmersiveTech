@@ -73,7 +73,6 @@ class Task(SqlAlchemyBase, UserMixin, SerializerMixin):
     description = Column(String)
     qualifications = Column(String)
     award = Column(Integer)
-    task_type = Column(Integer, ForeignKey('task_types.id'))
 
     def add_qualifications(self, qualifications: list[str]):
         self.qualifications += qualifications
@@ -85,9 +84,3 @@ class Task(SqlAlchemyBase, UserMixin, SerializerMixin):
                 self.qualifications.remove(elem)
             except Exception:
                 continue
-
-
-class TaskType(SqlAlchemyBase, UserMixin, SerializerMixin):
-    __tablename__ = 'task_types'
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
