@@ -1,0 +1,5 @@
+# Ignore PyCharm's project files
+.idea/
+
+# Ignore passwords.py file
+website/passwords.py
