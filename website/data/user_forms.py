@@ -1,12 +1,11 @@
-from flask_wtf import *
-from wtforms import *
-from wtforms.validators import *
+from flask_wtf import FlaskForm
+from wtforms import EmailField, PasswordField, SubmitField, StringField, IntegerField
+from wtforms.validators import DataRequired
 
 
 class LoginForm(FlaskForm):    # форма логина
     email = EmailField('Почта', validators=[DataRequired()])
     password = PasswordField('Пароль', validators=[DataRequired()])
-    remember_me = BooleanField('Запомнить меня')
     submit = SubmitField('Войти')
 
 
@@ -24,3 +23,12 @@ class ResetPasswordForm(FlaskForm):   # форма восстановления 
     password = PasswordField('Пароль', validators=[DataRequired()])
     password_again = PasswordField('Повторите пароль', validators=[DataRequired()])
     submit = SubmitField('Восстановить доступ')
+
+
+class CreateTaskForm(FlaskForm):   # форма восстановления пароля
+    task_name = StringField('Название задания', validators=[DataRequired()])
+    reward = IntegerField('Награда за выполнение', validators=[DataRequired()])
+    description = StringField('Описание', validators=[DataRequired()])
+    grade = StringField(label='Класс в формате - "ЧислоБуква"', validators=[DataRequired()])
+    submit = SubmitField('Создать задание')
+

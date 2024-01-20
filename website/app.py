@@ -1,25 +1,19 @@
-from flask import Flask, render_template, request, redirect, make_response
+import uuid
+from manage import *
+from flask import render_template, request, redirect, make_response
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from data.user_forms import *
-from data import db_session
-import json
-from data.work_with_db import User, Transaction, Item
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+from data.work_with_db import User, Transaction, Item, Task
 import datetime
-from whoid import WhoID
-from passwords import *
+
 import app_api
+from data.user_forms import RegisterForm, LoginForm
 
-from website.data.user_forms import RegisterForm, LoginForm
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = app_password  # секретный ключ из файла passwords
 app.register_blueprint(app_api.blueprint)  # подлючение api
 login_manager = LoginManager()  # подключение flask_login
 login_manager.init_app(app)
-db_session.global_init("db/database.db")
+
 
 
 @login_manager.user_loader
@@ -38,14 +32,55 @@ def login_page():  # страница входа
     form = LoginForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
-        user = db_sess.query().filter(User.email == form.email.data).first()
+        user = db_sess.query(User).filter(User.email == form.email.data).first()
         if user and user.check_password(form.password.data):  # получние пароля по почте и сравнение
-            login_user(user, remember=form.remember_me.data)
+            login_user(user)
             return redirect("/")
         return render_template('login.html',
                                message="Неправильный логин или пароль",
                                form=form)
     return render_template('login.html', form=form)
+
+
+@app.route('/create-task', methods=["POST", "GET"])
+@login_required
+def create_task():  # создание задания
+    form = CreateTaskForm()
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        # подключение бд и проверка наличия почты там
+        if db_sess.query(Task).filter(Task.name == form.task_name.data).first():
+            return render_template('create_task.html',
+                                   form=form,
+                                   message="Такое задание уже есть")
+        task = Task(
+            name=form.task_name.data,
+            description=form.description.data,
+            qulifications=form.description.data,
+            award=form.award.data,
+            grade=form.grade.data
+        )
+        db_sess.add(task)  # добавление в бд
+        db_sess.commit()
+        return redirect("/tasks")
+    return render_template('create_task.html', form=form)
+
+
+@app.route('/check_tasks', methods=["GET", "POST"])
+@login_required
+def check_tasks():
+    db_sess = db_session.create_session()
+    data = db_sess.query(Task).all()
+    users = db_sess.query(User).all()
+    if request.method == 'POST':
+        if request.form.get('btn'):
+            task = db_sess.query(Task).filter(Task.id == int(request.form.get('btn'))).first()
+            user = db_sess.query(User).filter(User.name == request.form.get('srudent')).first()
+            user.add_coins(task.award)
+            db_sess.commit()
+        return render_template('asses.html', logged=current_user.is_authenticated,
+                               data=data, users=users)
+    return render_template('asses.html', logged=current_user.is_authenticated, data=data, users=users)
 
 
 @app.route('/logout')
@@ -55,6 +90,7 @@ def logout():
     return redirect("/")
 
 
+'''
 @app.route('/register', methods=["POST", "GET"])
 def register_page():  # страница регистрации
     form = RegisterForm()
@@ -81,6 +117,24 @@ def register_page():  # страница регистрации
         db_sess.commit()
         return redirect('/login')
     return render_template('signup.html', form=form)
+'''
+
+
+@app.route('/whoid')
+def whoid_auth():
+    token = str(uuid.uuid4())
+    return render_template('whoid.html', token=token)
+
+
+@app.route('/whoid_log')
+def log():
+    result = request.args.get('status')
+    mail = request.args.get('mail')
+    if result == "Success":
+        return render_template('index.html', result=result)
+    else:
+        token = str(uuid.uuid4())
+        return render_template('index.html', result=result, token=token)
 
 
 @app.route('/forgot-password', methods=["POST", "GET"])

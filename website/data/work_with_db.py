@@ -11,12 +11,14 @@ import datetime
 class Transaction(SqlAlchemyBase, UserMixin, SerializerMixin):
     __tablename__ = 'transactions'
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
+    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), )
     coin_change = Column(Integer)
     comment = Column(String)
     transaction_time = Column(sqlalchemy.DateTime,
                               default=datetime.datetime.now)
-    item_id = Column(Integer, ForeignKey('users.id'))
+    item_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'))
+    item = relationship('Item', backref='transactions', cascade='all, delete-orphan')
+    user = relationship('User', backref='transactions', cascade='all, delete-orphan')
 
 
 class User(SqlAlchemyBase, UserMixin, SerializerMixin):
@@ -52,6 +54,12 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
             return True
         return False
 
+    def add_coins(self, amount: int):
+        self.coins += amount
+
+    def transfer_coins(self, amount: int):
+        self.coins -= amount
+
 
 class Item(SqlAlchemyBase, UserMixin, SerializerMixin):
     __tablename__ = 'items'
@@ -73,7 +81,7 @@ class Task(SqlAlchemyBase, UserMixin, SerializerMixin):
     description = Column(String)
     qualifications = Column(String)
     award = Column(Integer)
-    task_type = Column(Integer, ForeignKey('task_types.id'))
+    grade = Column(String)
 
     def add_qualifications(self, qualifications: list[str]):
         self.qualifications += qualifications
@@ -85,9 +93,3 @@ class Task(SqlAlchemyBase, UserMixin, SerializerMixin):
                 self.qualifications.remove(elem)
             except Exception:
                 continue
-
-
-class TaskType(SqlAlchemyBase, UserMixin, SerializerMixin):
-    __tablename__ = 'task_types'
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
