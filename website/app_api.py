@@ -40,7 +40,12 @@ def student_data():
             client_orders = []
             for order in orders:
                 if int(order.client_id) == int(user.id):
-                    client_orders.append(order)
+                    trsc = {"id": order.id,
+                            "coin_change": order.coin_change,
+                            "comment": order.comment,
+                            "time": order.transaction_time,
+                            "item_id": order.item_id}
+                    client_orders.append(trsc)
             return jsonify({"coins": user.coins, "transactions": client_orders})
         except Exception:
             return jsonify({'ERROR': 'Error while getting data!'})
