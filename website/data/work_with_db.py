@@ -1,14 +1,15 @@
 import sqlalchemy
-from flask_login import UserMixin
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
-from sqlalchemy_serializer import SerializerMixin
 from werkzeug.security import generate_password_hash, check_password_hash
-from .db_session import SqlAlchemyBase
+from flask_sqlalchemy import SQLAlchemy
 import datetime
 
 
-class Transaction(SqlAlchemyBase, UserMixin, SerializerMixin):
+db = SQLAlchemy()
+
+
+class Transaction(db.Model):
     __tablename__ = 'transactions'
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), )
@@ -16,12 +17,12 @@ class Transaction(SqlAlchemyBase, UserMixin, SerializerMixin):
     comment = Column(String)
     transaction_time = Column(sqlalchemy.DateTime,
                               default=datetime.datetime.now)
-    item_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'))
-    item = relationship('Item', backref='transactions', cascade='all, delete-orphan')
-    user = relationship('User', backref='transactions', cascade='all, delete-orphan')
+    item_id = Column(Integer, ForeignKey('items.id', ondelete='CASCADE'))
+    item = relationship('Item', backref='transactions', cascade='all, delete-orphan', single_parent=True)
+    user = relationship('User', backref='transactions', cascade='all, delete-orphan', single_parent=True)
 
 
-class User(SqlAlchemyBase, UserMixin, SerializerMixin):
+class User(db.Model):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True)
     name = Column(String)
@@ -31,6 +32,7 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     email = Column(String)
     password = Column(String)
     status = Column(Integer, default=1)
+    transaction = relationship('Transaction', back_populates='user')
 
     def set_password(self, password: str):   # смена пароля
         self.password = generate_password_hash(password)
@@ -61,7 +63,7 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
         self.coins -= amount
 
 
-class Item(SqlAlchemyBase, UserMixin, SerializerMixin):
+class Item(db.Model):
     __tablename__ = 'items'
     id = Column(Integer, primary_key=True)
     name = Column(String)
@@ -69,12 +71,13 @@ class Item(SqlAlchemyBase, UserMixin, SerializerMixin):
     quantity = Column(Integer)
     description = Column(String)
     price = Column(Integer)
+    transaction = relationship('Transaction', back_populates='item')
 
     def reduce_quantity(self):
         self.quantity = self.quantity - 1
 
 
-class Task(SqlAlchemyBase, UserMixin, SerializerMixin):
+class Task(db.Model):
     __tablename__ = 'awards_achievements'
     id = Column(Integer, primary_key=True)
     name = Column(String)

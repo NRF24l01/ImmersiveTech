@@ -29,3 +29,18 @@ def register_user():
             return jsonify({'SUCCESS': 'User has been registered!'})
         except Exception:
             return jsonify({'ERROR': 'Error while registering user!'})
+
+
+@blueprint.route('/api/get_data', methods=['POST', 'GET'])
+def student_data():
+        try:
+            db_sess = db_session.create_session()
+            user = db_sess.query(User).filter(User.card_id == request.form.get('card_id')).first()
+            orders = db_sess.query(Item).all()
+            client_orders = []
+            for order in orders:
+                if int(order.client_id) == int(user.id):
+                    client_orders.append(order)
+            return jsonify({"coins": user.coins, "transactions": client_orders})
+        except Exception:
+            return jsonify({'ERROR': 'Error while getting data!'})

@@ -24,7 +24,9 @@ def load_user(user_id):  # подгрука пользователя из бд
 
 @app.route('/')
 def main_page():  # главная страница
-    return render_template('index.html', logged=current_user.is_authenticated)
+    return render_template('index.html',
+                           logged=current_user.is_authenticated,
+                           teacher=load_user(current_user).check_teacher())
 
 
 @app.route('/login', methods=["POST", "GET"])
@@ -38,32 +40,36 @@ def login_page():  # страница входа
             return redirect("/")
         return render_template('login.html',
                                message="Неправильный логин или пароль",
-                               form=form)
-    return render_template('login.html', form=form)
+                               form=form, teacher=load_user(current_user).check_teacher())
+    return render_template('login.html', form=form, teacher=load_user(current_user).check_teacher())
 
 
 @app.route('/create-task', methods=["POST", "GET"])
 @login_required
 def create_task():  # создание задания
-    form = CreateTaskForm()
-    if form.validate_on_submit():
-        db_sess = db_session.create_session()
-        # подключение бд и проверка наличия почты там
-        if db_sess.query(Task).filter(Task.name == form.task_name.data).first():
-            return render_template('create_task.html',
-                                   form=form,
-                                   message="Такое задание уже есть")
-        task = Task(
-            name=form.task_name.data,
-            description=form.description.data,
-            qulifications=form.description.data,
-            award=form.award.data,
-            grade=form.grade.data
-        )
-        db_sess.add(task)  # добавление в бд
-        db_sess.commit()
-        return redirect("/tasks")
-    return render_template('create_task.html', form=form)
+    if load_user(current_user).check_teacher():
+        form = CreateTaskForm()
+        if form.validate_on_submit():
+            db_sess = db_session.create_session()
+            # подключение бд и проверка наличия почты там
+            if db_sess.query(Task).filter(Task.name == form.task_name.data).first():
+                return render_template('create_task.html',
+                                       form=form,
+                                       message="Такое задание уже есть",
+                                       teacher=load_user(current_user).check_teacher())
+            task = Task(
+                name=form.task_name.data,
+                description=form.description.data,
+                qulifications=form.description.data,
+                award=form.reward.data,
+                grade=form.grade.data
+            )
+            db_sess.add(task)  # добавление в бд
+            db_sess.commit()
+            return redirect("/tasks")
+        return render_template('create_task.html', form=form,
+                               teacher=load_user(current_user).check_teacher())
+    return redirect('/')
 
 
 @app.route('/check_tasks', methods=["GET", "POST"])
@@ -75,12 +81,13 @@ def check_tasks():
     if request.method == 'POST':
         if request.form.get('btn'):
             task = db_sess.query(Task).filter(Task.id == int(request.form.get('btn'))).first()
-            user = db_sess.query(User).filter(User.name == request.form.get('srudent')).first()
+            user = db_sess.query(User).filter(User.name == request.form.get('student')).first()
             user.add_coins(task.award)
             db_sess.commit()
         return render_template('asses.html', logged=current_user.is_authenticated,
-                               data=data, users=users)
-    return render_template('asses.html', logged=current_user.is_authenticated, data=data, users=users)
+                               data=data, users=users, teacher=load_user(current_user).check_teacher())
+    return render_template('asses.html', logged=current_user.is_authenticated, data=data, users=users,
+                           teacher=load_user(current_user).check_teacher())
 
 
 @app.route('/logout')
@@ -172,7 +179,8 @@ def reset_password():  # страница создания нового паро
         if form.password.data != form.password_again.data:
             return render_template('new_password.html',
                                    form=form,
-                                   message="Пароли не совпадают")
+                                   message="Пароли не совпадают",
+                                   teacher=load_user(current_user).check_teacher())
         else:
             print('Passwords are equal')
             client = request.args.get('email')
@@ -185,7 +193,8 @@ def reset_password():  # страница создания нового паро
                 client_account.set_password(form.password.data)
                 db_sess.commit()  # смена пароля пользователя
                 return redirect('/login')
-    return render_template('new_password.html', form=form)
+    return render_template('new_password.html', form=form,
+                           teacher=load_user(current_user).check_teacher())
 
 
 @app.route('/rewards', methods=["GET", "POST"])
@@ -214,9 +223,11 @@ def show_items():  # каталог
             item = db_sess.query(Item).filter(Item.id == int(request.form.get('btn'))).first()
             return redirect(f'/get_payment/?item_id={item.id}')
         return render_template('awards.html', logged=current_user.is_authenticated, data=data,
-                               selected_sort=selected_sort, finder_value=finder_value)
+                               selected_sort=selected_sort, finder_value=finder_value,
+                               teacher=load_user(current_user).check_teacher())
     return render_template('awards.html', logged=current_user.is_authenticated, data=data,
-                           selected_sort=selected_sort, finder_value=finder_value)
+                           selected_sort=selected_sort, finder_value=finder_value,
+                           teacher=load_user(current_user).check_teacher())
 
 
 @app.route('/tasks', methods=["GET", "POST"])
@@ -245,9 +256,11 @@ def show_tasks():  # каталог
             item = db_sess.query(Item).filter(Item.id == int(request.form.get('btn'))).first()
             return redirect(f'/get_payment/?item_id={item.id}')
         return render_template('tasks.html', logged=current_user.is_authenticated, data=data,
-                               selected_sort=selected_sort, finder_value=finder_value)
+                               selected_sort=selected_sort, finder_value=finder_value,
+                               teacher=load_user(current_user).check_teacher())
     return render_template('tasks.html', logged=current_user.is_authenticated, data=data,
-                           selected_sort=selected_sort, finder_value=finder_value)
+                           selected_sort=selected_sort, finder_value=finder_value,
+                           teacher=load_user(current_user).check_teacher())
 
 
 @app.route('/profile', methods=["GET", "POST"])
@@ -259,7 +272,8 @@ def show_profile():  # страница истории заказов
     for order in orders:
         if int(order.client_id) == int(current_user.id):
             client_orders.append(order)
-    return render_template('profile.html', orders=client_orders, user=current_user)
+    return render_template('profile.html', orders=client_orders, user=current_user,
+                           teacher=load_user(current_user).check_teacher())
 
 
 @app.route('/recieve_payment', methods=["GET", "POST"])
@@ -279,7 +293,8 @@ def get_payment():  # получение оплаты, выдача товара
 
 @app.errorhandler(404)  # обработка 404
 def handle_error404(error):
-    return render_template('404.html', logged=current_user.is_authenticated)
+    return render_template('404.html', logged=current_user.is_authenticated,
+                           teacher=load_user(current_user).check_teacher())
 
 
 def main():
