@@ -227,7 +227,12 @@ def get_payment():  # получение оплаты, выдача товара
 def handle_error404(error):
     return render_template('404.html', logged=current_user.is_authenticated)
 
-
+@app.route('/letter')
+def check_letter():
+    return render_template('passwordprev.html')
+@app.route('/greeting')
+def check_greeting():
+    return render_template('greeting.html')
 def main():
     db_session.global_init("db/database.db")
     app.run(debug=True)
