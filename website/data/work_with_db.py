@@ -32,6 +32,7 @@ class User(db.Model):
     email = Column(String)
     password = Column(String)
     status = Column(Integer, default=1)
+    grade = Column(String)
     transaction = relationship('Transaction', back_populates='user')
 
     def set_password(self, password: str):   # смена пароля

@@ -30,13 +30,14 @@ def main_page():  # главная страница
     else:
         teacher = False
     if request.method == 'POST':
-        if request.args.get("support"):
-            name = request.args.get("name")
-            email = request.args.get("email")
-            print(f"support {name} {email}")
+        if request.form.get("support"):
+            name = request.form.get("name")
+            email = request.form.get("email")
+            message = request.form.get("message")
+            print(f"support {name} {email} {message}")
             return redirect('/')
         else:
-            email = request.args.get("subscribe")
+            email = request.form.get("email_ad")
             print(f"subscribe {email}")
             return redirect('/')
     return render_template('index.html',
@@ -168,7 +169,7 @@ def whoid_auth():
     return render_template('whoid.html', token=token, teacher=teacher)
 
 
-@app.route('/whoid_log')
+@app.route('/log')
 def log():
     user = load_user(current_user)
     if user != None:
@@ -283,13 +284,14 @@ def show_items():  # каталог
 @app.route('/tasks', methods=["GET", "POST"])
 def show_tasks():  # каталог
     user = load_user(current_user)
+    db_sess = db_session.create_session()
     if user != None:
         teacher = user.check_teacher()
+        data = db_sess.query(Task).filter(Task.grade == user.grade).all()
     else:
         teacher = False
-    db_sess = db_session.create_session()
+        data = db_sess.query(Task).all()
     # начало работы с фильтрами и сортировкой
-    data = db_sess.query(Item).order_by(Item.price).all()
     selected_sort = 'ascend'
     finder_value = ''
     if request.method == 'POST':
