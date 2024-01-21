@@ -1,5 +1,6 @@
 # Ignore PyCharm's project files
 .idea/
+venv
 
 # Ignore passwords.py file
-website/passwords.py
+active_student/active_student/settings.py

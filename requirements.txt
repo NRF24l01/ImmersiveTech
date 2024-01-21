@@ -1,0 +1,5 @@
+flet==0.19
+Django==5.0.1
+pyserial
+requests
+qrcode
